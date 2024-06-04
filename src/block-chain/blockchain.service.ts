@@ -6,34 +6,13 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class BlockchainService {
-  private readonly DIFFICULTY = '00';
-  private readonly logger = new Logger('BlockchainService');
+  private readonly logger = new Logger(BlockchainService.name);
 
   constructor(
     @InjectModel('Block') private readonly blockModel: Model<Block>,
   ) {}
 
-  async createGenesisBlock(data: any): Promise<{ id: string; hash: string }> {
-    const genesisBlock = {
-      index: 0,
-      timestamp: new Date(),
-      data: JSON.stringify(data),
-      previousHash: '0',
-      nonce: 0,
-      hash: this.calculateHash(0, new Date(), JSON.stringify(data), '0', 0),
-    };
-
-    try {
-      const createdBlock = new this.blockModel(genesisBlock);
-      const savedBlock = await createdBlock.save();
-      return { id: savedBlock._id.toString(), hash: savedBlock.hash };
-    } catch (error) {
-      this.logger.error(`Error creating genesis block: ${error.message}`);
-      return error;
-    }
-  }
-
-  calculateHash(
+  private calculateHash(
     index: number,
     timestamp: Date,
     data: string,
@@ -46,7 +25,7 @@ export class BlockchainService {
       .digest('hex');
   }
 
-  async mineBlock(
+  private async mineBlock(
     index: number,
     timestamp: Date,
     data: string,
@@ -58,9 +37,28 @@ export class BlockchainService {
     do {
       hash = this.calculateHash(index, timestamp, data, previousHash, nonce);
       nonce++;
-    } while (!hash.startsWith(this.DIFFICULTY));
+    } while (!hash.startsWith('0000')); // Adjust the difficulty as needed
 
     return { hash, nonce: nonce - 1 };
+  }
+
+  async createGenesisBlock(data: any): Promise<{ id: string; hash: string }> {
+    try {
+      const genesisBlock = {
+        index: 0,
+        timestamp: new Date(),
+        data: JSON.stringify(data),
+        previousHash: '0',
+        nonce: 0,
+        hash: this.calculateHash(0, new Date(), JSON.stringify(data), '0', 0),
+      };
+      const createdBlock = new this.blockModel(genesisBlock);
+      const savedBlock = await createdBlock.save();
+      return { id: savedBlock._id.toString(), hash: savedBlock.hash };
+    } catch (error) {
+      this.logger.error('Error creating genesis block', error.stack);
+      throw new Error('Error creating genesis block');
+    }
   }
 
   async addBlock(data: any, blockchainId: string): Promise<{ hash: string }> {
@@ -68,7 +66,6 @@ export class BlockchainService {
       const lastBlock = await this.blockModel
         .findOne({ _id: blockchainId })
         .sort({ index: -1 });
-
       const newBlockData = {
         index: lastBlock ? lastBlock.index + 1 : 0,
         timestamp: new Date(),
@@ -93,8 +90,8 @@ export class BlockchainService {
       await createdBlock.save();
       return { hash: newBlock.hash };
     } catch (error) {
-      this.logger.error(`Error adding block: ${error.message}`);
-      return error;
+      this.logger.error('Error adding block', error.stack);
+      throw new Error('Error adding block');
     }
   }
 
@@ -104,8 +101,8 @@ export class BlockchainService {
         .find({ _id: blockchainId })
         .sort({ index: 1 });
     } catch (error) {
-      this.logger.error(`Error getting blockchain: ${error.message}`);
-      return error;
+      this.logger.error('Error getting blockchain', error.stack);
+      throw new Error('Error getting blockchain');
     }
   }
 
@@ -115,8 +112,8 @@ export class BlockchainService {
         .find({ data: new RegExp(productHash, 'i') })
         .sort({ index: 1 });
     } catch (error) {
-      this.logger.error(`Error getting product provenance: ${error.message}`);
-      return error;
+      this.logger.error('Error getting product provenance', error.stack);
+      throw new Error('Error getting product provenance');
     }
   }
 
@@ -150,8 +147,8 @@ export class BlockchainService {
 
       return true;
     } catch (error) {
-      this.logger.error(`Error validating blockchain: ${error.message}`);
-      return error;
+      this.logger.error('Error validating blockchain', error.stack);
+      throw new Error('Error validating blockchain');
     }
   }
 }
