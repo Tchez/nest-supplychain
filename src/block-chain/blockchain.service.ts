@@ -1,36 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as crypto from 'crypto';
 import { Block } from './interfaces/block.interface';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class BlockchainService {
   private readonly DIFFICULTY = '00';
+  private readonly logger = new Logger('BlockchainService');
 
   constructor(
     @InjectModel('Block') private readonly blockModel: Model<Block>,
   ) {}
 
-  async createGenesisBlock(): Promise<Block> {
-    const genesisBlock: Block = {
+  async createGenesisBlock(data: any): Promise<{ id: string; hash: string }> {
+    const genesisBlock = {
       index: 0,
       timestamp: new Date(),
-      data: 'Genesis Block',
+      data: JSON.stringify(data),
       previousHash: '0',
       nonce: 0,
-      hash: this.calculateHash(0, new Date(), 'Genesis Block', '0', 0),
+      hash: this.calculateHash(0, new Date(), JSON.stringify(data), '0', 0),
     };
 
     try {
       const createdBlock = new this.blockModel(genesisBlock);
-      return await createdBlock.save();
+      const savedBlock = await createdBlock.save();
+      return { id: savedBlock._id.toString(), hash: savedBlock.hash };
     } catch (error) {
+      this.logger.error(`Error creating genesis block: ${error.message}`);
       return error;
     }
   }
 
-  private calculateHash(
+  calculateHash(
     index: number,
     timestamp: Date,
     data: string,
@@ -60,15 +63,17 @@ export class BlockchainService {
     return { hash, nonce: nonce - 1 };
   }
 
-  async addBlock(data: string): Promise<Block> {
+  async addBlock(data: any, blockchainId: string): Promise<{ hash: string }> {
     try {
-      const lastBlock = await this.blockModel.findOne().sort({ index: -1 });
+      const lastBlock = await this.blockModel
+        .findOne({ _id: blockchainId })
+        .sort({ index: -1 });
 
       const newBlockData = {
-        index: lastBlock.index + 1,
+        index: lastBlock ? lastBlock.index + 1 : 0,
         timestamp: new Date(),
-        data,
-        previousHash: lastBlock.hash,
+        data: JSON.stringify(data),
+        previousHash: lastBlock ? lastBlock.hash : '0',
       };
 
       const { hash, nonce } = await this.mineBlock(
@@ -85,45 +90,68 @@ export class BlockchainService {
       };
 
       const createdBlock = new this.blockModel(newBlock);
-      return await createdBlock.save();
+      await createdBlock.save();
+      return { hash: newBlock.hash };
     } catch (error) {
+      this.logger.error(`Error adding block: ${error.message}`);
       return error;
     }
   }
 
-  async getBlockchain(): Promise<Block[]> {
+  async getBlockchain(blockchainId: string): Promise<Block[]> {
     try {
-      return await this.blockModel.find().sort({ index: 1 });
+      return await this.blockModel
+        .find({ _id: blockchainId })
+        .sort({ index: 1 });
     } catch (error) {
+      this.logger.error(`Error getting blockchain: ${error.message}`);
       return error;
     }
   }
 
-  async validateBlockchain(): Promise<boolean> {
-    const blocks = await this.blockModel.find().sort({ index: 1 });
-
-    for (let i = 1; i < blocks.length; i++) {
-      const currentBlock = blocks[i];
-      const previousBlock = blocks[i - 1];
-
-      if (
-        currentBlock.hash !==
-        this.calculateHash(
-          currentBlock.index,
-          currentBlock.timestamp,
-          currentBlock.data,
-          currentBlock.previousHash,
-          currentBlock.nonce,
-        )
-      ) {
-        return false;
-      }
-
-      if (currentBlock.previousHash !== previousBlock.hash) {
-        return false;
-      }
+  async getProductProvenance(productHash: string): Promise<Block[]> {
+    try {
+      return await this.blockModel
+        .find({ data: new RegExp(productHash, 'i') })
+        .sort({ index: 1 });
+    } catch (error) {
+      this.logger.error(`Error getting product provenance: ${error.message}`);
+      return error;
     }
+  }
 
-    return true;
+  async validateBlockchain(blockchainId: string): Promise<boolean> {
+    try {
+      const blocks = await this.blockModel
+        .find({ _id: blockchainId })
+        .sort({ index: 1 });
+
+      for (let i = 1; i < blocks.length; i++) {
+        const currentBlock = blocks[i];
+        const previousBlock = blocks[i - 1];
+
+        if (
+          currentBlock.hash !==
+          this.calculateHash(
+            currentBlock.index,
+            currentBlock.timestamp,
+            currentBlock.data,
+            currentBlock.previousHash,
+            currentBlock.nonce,
+          )
+        ) {
+          return false;
+        }
+
+        if (currentBlock.previousHash !== previousBlock.hash) {
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(`Error validating blockchain: ${error.message}`);
+      return error;
+    }
   }
 }
