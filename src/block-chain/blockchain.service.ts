@@ -54,6 +54,10 @@ export class BlockchainService {
       };
       const createdBlock = new this.blockModel(genesisBlock);
       const savedBlock = await createdBlock.save();
+
+      // TODO: Chamar serviço para atualizar hash do produto no banco relacional
+      // await this.productService.updateProductHash(savedBlock._id.toString(), savedBlock.hash);
+
       return { id: savedBlock._id.toString(), hash: savedBlock.hash };
     } catch (error) {
       this.logger.error('Error creating genesis block', error.stack);
@@ -88,6 +92,10 @@ export class BlockchainService {
 
       const createdBlock = new this.blockModel(newBlock);
       await createdBlock.save();
+
+      // TODO: Chamar serviço para atualizar hash da relação no banco relacional
+      // await this.supplierProductService.updateRelationHash(blockchainId, newBlock.hash);
+
       return { hash: newBlock.hash };
     } catch (error) {
       this.logger.error('Error adding block', error.stack);
