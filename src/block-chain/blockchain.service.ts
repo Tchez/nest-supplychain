@@ -84,7 +84,7 @@ export class BlockchainService {
       this.logger.warn(
         'TODO: Chamar serviço para atualizar hash do produto no banco relacional',
       );
-      // await this.productService.updateProductHash(savedBlock._id.toString(), savedBlock.hash);
+      // await this.productService.updateProductHash(savedBlock.blockchainId, savedBlock.hash);
 
       return { id: savedBlock.blockchainId, hash: savedBlock.hash };
     } catch (error) {
@@ -206,7 +206,7 @@ export class BlockchainService {
       this.logger.warn(
         'TODO: Função depende da busca dos fornecedores relacionados ao produto do banco relacional para funcionar',
       );
-      // const suppliers = await this.supplierProductService.getSuppliersByProduct(productId);
+      // const suppliers = await this.supplierProductService.getSuppliersByBlockchain(blockchainId);
 
       const blocks = await this.blockModel
         .find({ blockchainId }) // Filtra por blockchainId
