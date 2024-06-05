@@ -7,11 +7,21 @@ import * as crypto from 'crypto';
 @Injectable()
 export class BlockchainService {
   private readonly logger = new Logger(BlockchainService.name);
+  private readonly DIFFICULTY = '00';
 
   constructor(
     @InjectModel('Block') private readonly blockModel: Model<Block>,
   ) {}
 
+  /**
+   * Calculates the SHA-256 hash of the block.
+   * @param index - The index of the block.
+   * @param timestamp - The timestamp of the block.
+   * @param data - The data contained in the block.
+   * @param previousHash - The hash of the previous block.
+   * @param nonce - The nonce value used for mining.
+   * @returns The SHA-256 hash of the block.
+   */
   private calculateHash(
     index: number,
     timestamp: Date,
@@ -25,6 +35,14 @@ export class BlockchainService {
       .digest('hex');
   }
 
+  /**
+   * Mines a block by finding a nonce that produces a hash with the required difficulty.
+   * @param index - The index of the block.
+   * @param timestamp - The timestamp of the block.
+   * @param data - The data contained in the block.
+   * @param previousHash - The hash of the previous block.
+   * @returns An object containing the hash and nonce of the mined block.
+   */
   private async mineBlock(
     index: number,
     timestamp: Date,
@@ -37,11 +55,16 @@ export class BlockchainService {
     do {
       hash = this.calculateHash(index, timestamp, data, previousHash, nonce);
       nonce++;
-    } while (!hash.startsWith('0000')); // Adjust the difficulty as needed
+    } while (!hash.startsWith(this.DIFFICULTY));
 
     return { hash, nonce: nonce - 1 };
   }
 
+  /**
+   * Creates the genesis block for a new blockchain.
+   * @param data - The data to be included in the genesis block.
+   * @returns An object containing the ID and hash of the created genesis block.
+   */
   async createGenesisBlock(data: any): Promise<{ id: string; hash: string }> {
     try {
       const genesisBlock = {
@@ -65,6 +88,12 @@ export class BlockchainService {
     }
   }
 
+  /**
+   * Adds a new block to the blockchain.
+   * @param data - The data to be included in the block.
+   * @param blockchainId - The ID of the blockchain.
+   * @returns The hash of the created block.
+   */
   async addBlock(data: any, blockchainId: string): Promise<{ hash: string }> {
     try {
       const lastBlock = await this.blockModel
@@ -103,6 +132,11 @@ export class BlockchainService {
     }
   }
 
+  /**
+   * Retrieves the blockchain by its ID.
+   * @param blockchainId - The ID of the blockchain.
+   * @returns An array of blocks in the blockchain.
+   */
   async getBlockchain(blockchainId: string): Promise<Block[]> {
     try {
       return await this.blockModel
@@ -114,6 +148,11 @@ export class BlockchainService {
     }
   }
 
+  /**
+   * Retrieves the provenance of a product based on its hash.
+   * @param productHash - The hash of the product.
+   * @returns An array of blocks containing the product's provenance data.
+   */
   async getProductProvenance(productHash: string): Promise<Block[]> {
     try {
       return await this.blockModel
@@ -125,6 +164,11 @@ export class BlockchainService {
     }
   }
 
+  /**
+   * Validates the integrity of a blockchain.
+   * @param blockchainId - The ID of the blockchain.
+   * @returns A boolean indicating whether the blockchain is valid.
+   */
   async validateBlockchain(blockchainId: string): Promise<boolean> {
     try {
       const blocks = await this.blockModel
@@ -157,6 +201,55 @@ export class BlockchainService {
     } catch (error) {
       this.logger.error('Error validating blockchain', error.stack);
       throw new Error('Error validating blockchain');
+    }
+  }
+
+  /**
+   * Validates all suppliers related to a specific product.
+   * @param productId - The ID of the product.
+   * @returns A boolean indicating whether all related suppliers are valid.
+   */
+  async validateSuppliersByProduct(productId: string): Promise<boolean> {
+    try {
+      // TODO: Buscar fornecedores relacionados ao produto do banco relacional
+      console.log(
+        `TODO: Buscar fornecedores relacionados ao produto de id ${productId}`,
+      );
+      // const suppliers = await this.supplierProductService.getSuppliersByProduct(productId);
+      const suppliers = []; // Placeholder for actual suppliers
+
+      for (const supplier of suppliers) {
+        const blocks = await this.blockModel
+          .find({ data: new RegExp(supplier.hash, 'i') })
+          .sort({ index: 1 });
+
+        for (let i = 1; i < blocks.length; i++) {
+          const currentBlock = blocks[i];
+          const previousBlock = blocks[i - 1];
+
+          if (
+            currentBlock.hash !==
+            this.calculateHash(
+              currentBlock.index,
+              currentBlock.timestamp,
+              currentBlock.data,
+              currentBlock.previousHash,
+              currentBlock.nonce,
+            )
+          ) {
+            return false;
+          }
+
+          if (currentBlock.previousHash !== previousBlock.hash) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error('Error validating suppliers by product', error.stack);
+      throw new Error('Error validating suppliers by product');
     }
   }
 }
