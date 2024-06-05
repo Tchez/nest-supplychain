@@ -10,12 +10,10 @@ async function bootstrap() {
     .setDescription('API for managing product and supplier blockchain')
     .setVersion('0.1')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
 
-  app.use('/', (req, res) => {
-    res.redirect('/api');
-  });
+  const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);
 }

@@ -1,0 +1,221 @@
+{
+	"info": {
+		"_postman_id": "b98cd6fb-b48f-4078-acbc-4c522f3d095e",
+		"name": "BlockChain",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23619953"
+	},
+	"item": [
+		{
+			"name": "createProduct",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"create_product\",\r\n    \"data\": {\r\n        \"id\": \"relational_product_id\",\r\n        \"title\": \"Produto 1\",\r\n        \"description\": \"Descrição do Produto\",\r\n        \"category\": \"frios\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/blockchain/create-product",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"create-product"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getBlockchain",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/blockchain/42953f24-ebc6-479b-a0ab-f64acd6a5b39",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"42953f24-ebc6-479b-a0ab-f64acd6a5b39"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "inviteSupplier",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"invite_supplier\",\r\n    \"data\": {\r\n        \"email\": \"email_invitation_was_made\",\r\n        \"name\": \"supplier_name\",\r\n        \"cnpj\": \"supplier_cnpj\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/blockchain/invite-supplier/42953f24-ebc6-479b-a0ab-f64acd6a5b39",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"invite-supplier",
+						"42953f24-ebc6-479b-a0ab-f64acd6a5b39"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "confirmSupplier",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"confirm_supplier\",\r\n    \"data\": {\r\n        \"email\": \"email_invitation_was_made\",\r\n        \"name\": \"supplier_name\",\r\n        \"cnpj\": \"supplier_cnpj\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/blockchain/confirm-supplier/42953f24-ebc6-479b-a0ab-f64acd6a5b39",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"confirm-supplier",
+						"42953f24-ebc6-479b-a0ab-f64acd6a5b39"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "registerSupplier",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"register_supplier\",\r\n    \"data\": {\r\n        \"email\": \"email_invitation_was_made\",\r\n        \"name\": \"supplier_name\",\r\n        \"cnpj\": \"supplier_cnpj\",\r\n        \"relational_supplier_id\": \"id desse supplier cadatrado no banco relacional\",\r\n        \"relational_product_id\": \"id do Produto cadatrado pelo supplier\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/blockchain/register-supplier/42953f24-ebc6-479b-a0ab-f64acd6a5b39",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"register-supplier",
+						"42953f24-ebc6-479b-a0ab-f64acd6a5b39"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "alterProduct",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"alter_product\",\r\n    \"data\": {\r\n        \"id\": \"relational_product_id\",\r\n        \"title\": \"Produto 1\",\r\n        \"description\": \"Descrição modificada do Produto\",\r\n        \"category\": \"quentes\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/blockchain/alter-product/42953f24-ebc6-479b-a0ab-f64acd6a5b39",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"alter-product",
+						"42953f24-ebc6-479b-a0ab-f64acd6a5b39"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "validateBlockchain",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/blockchain/validate/42953f24-ebc6-479b-a0ab-f64acd6a5b39",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"validate",
+						"42953f24-ebc6-479b-a0ab-f64acd6a5b39"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "validateSuppliersByProduct",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/blockchain/validate-suppliers/42953f24-ebc6-479b-a0ab-f64acd6a5b39",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"blockchain",
+						"validate-suppliers",
+						"42953f24-ebc6-479b-a0ab-f64acd6a5b39"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
