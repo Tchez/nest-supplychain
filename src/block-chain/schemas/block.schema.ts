@@ -7,4 +7,5 @@ export const BlockSchema = new Schema({
   previousHash: { type: String, required: true },
   hash: { type: String, required: true },
   nonce: { type: Number, required: true },
+  blockchainId: { type: String, required: true },
 });

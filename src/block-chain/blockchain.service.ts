@@ -67,6 +67,7 @@ export class BlockchainService {
    */
   async createGenesisBlock(data: any): Promise<{ id: string; hash: string }> {
     try {
+      const blockchainId = crypto.randomUUID();
       const genesisBlock = {
         index: 0,
         timestamp: new Date(),
@@ -74,6 +75,7 @@ export class BlockchainService {
         previousHash: '0',
         nonce: 0,
         hash: this.calculateHash(0, new Date(), JSON.stringify(data), '0', 0),
+        blockchainId,
       };
       const createdBlock = new this.blockModel(genesisBlock);
       const savedBlock = await createdBlock.save();
@@ -84,7 +86,7 @@ export class BlockchainService {
       );
       // await this.productService.updateProductHash(savedBlock._id.toString(), savedBlock.hash);
 
-      return { id: savedBlock._id.toString(), hash: savedBlock.hash };
+      return { id: savedBlock.blockchainId, hash: savedBlock.hash };
     } catch (error) {
       this.logger.error('Error creating genesis block', error.stack);
       throw new Error('Error creating genesis block');
@@ -107,6 +109,7 @@ export class BlockchainService {
         timestamp: new Date(),
         data: JSON.stringify(data),
         previousHash: lastBlock ? lastBlock.hash : '0',
+        blockchainId,
       };
 
       const { hash, nonce } = await this.mineBlock(
@@ -206,7 +209,7 @@ export class BlockchainService {
       // const suppliers = await this.supplierProductService.getSuppliersByProduct(productId);
 
       const blocks = await this.blockModel
-        .find({ blockchainId })
+        .find({ blockchainId }) // Filtra por blockchainId
         .sort({ index: 1 });
 
       for (let i = 1; i < blocks.length; i++) {
