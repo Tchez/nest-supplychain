@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { BlockchainService } from './blockchain.service';
 
 @Controller('blockchain')
@@ -11,6 +19,12 @@ export class BlockchainController {
   async createGenesisBlock(
     @Body() data: any,
   ): Promise<{ id: string; hash: string }> {
+    if (!data || !data.type || !data.data) {
+      throw new BadRequestException(
+        'Invalid data format. Expected { type, data }',
+      );
+    }
+
     try {
       return await this.blockchainService.createGenesisBlock(data);
     } catch (error) {
@@ -24,6 +38,16 @@ export class BlockchainController {
     @Body() data: any,
     @Param('blockchainId') blockchainId: string,
   ): Promise<{ hash: string }> {
+    if (!data || !data.type || !data.data) {
+      throw new BadRequestException(
+        'Invalid data format. Expected { type, data }',
+      );
+    }
+
+    if (!blockchainId) {
+      throw new BadRequestException('Blockchain ID is required');
+    }
+
     try {
       return await this.blockchainService.addBlock(data, blockchainId);
     } catch (error) {
@@ -36,6 +60,10 @@ export class BlockchainController {
   async getBlockchain(
     @Param('blockchainId') blockchainId: string,
   ): Promise<any[]> {
+    if (!blockchainId) {
+      throw new BadRequestException('Blockchain ID is required');
+    }
+
     try {
       return await this.blockchainService.getBlockchain(blockchainId);
     } catch (error) {
@@ -44,22 +72,14 @@ export class BlockchainController {
     }
   }
 
-  @Get('provenance/:hash')
-  async getProductProvenance(
-    @Param('hash') productHash: string,
-  ): Promise<any[]> {
-    try {
-      return await this.blockchainService.getProductProvenance(productHash);
-    } catch (error) {
-      this.logger.error('Failed to get product provenance', error.stack);
-      throw new Error('Failed to get product provenance');
-    }
-  }
-
   @Get('validate/:blockchainId')
   async validateBlockchain(
     @Param('blockchainId') blockchainId: string,
   ): Promise<boolean> {
+    if (!blockchainId) {
+      throw new BadRequestException('Blockchain ID is required');
+    }
+
     try {
       return await this.blockchainService.validateBlockchain(blockchainId);
     } catch (error) {
@@ -68,15 +88,24 @@ export class BlockchainController {
     }
   }
 
-  @Get('validate-suppliers/:productId')
-  async validateSuppliersByProduct(
-    @Param('productId') productId: string,
+  @Get('validate-suppliers/:blockchainId')
+  async validateSuppliersByBlockchain(
+    @Param('blockchainId') blockchainId: string,
   ): Promise<boolean> {
+    if (!blockchainId) {
+      throw new BadRequestException('Blockchain ID is required');
+    }
+
     try {
-      return await this.blockchainService.validateSuppliersByProduct(productId);
+      return await this.blockchainService.validateSuppliersByBlockchain(
+        blockchainId,
+      );
     } catch (error) {
-      this.logger.error('Failed to validate suppliers by product', error.stack);
-      throw new Error('Failed to validate suppliers by product');
+      this.logger.error(
+        'Failed to validate suppliers by blockchain',
+        error.stack,
+      );
+      throw new Error('Failed to validate suppliers by blockchain');
     }
   }
 }

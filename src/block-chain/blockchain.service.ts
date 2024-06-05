@@ -79,6 +79,9 @@ export class BlockchainService {
       const savedBlock = await createdBlock.save();
 
       // TODO: Chamar serviço para atualizar hash do produto no banco relacional
+      this.logger.warn(
+        'TODO: Chamar serviço para atualizar hash do produto no banco relacional',
+      );
       // await this.productService.updateProductHash(savedBlock._id.toString(), savedBlock.hash);
 
       return { id: savedBlock._id.toString(), hash: savedBlock.hash };
@@ -97,7 +100,7 @@ export class BlockchainService {
   async addBlock(data: any, blockchainId: string): Promise<{ hash: string }> {
     try {
       const lastBlock = await this.blockModel
-        .findOne({ _id: blockchainId })
+        .findOne({ blockchainId })
         .sort({ index: -1 });
       const newBlockData = {
         index: lastBlock ? lastBlock.index + 1 : 0,
@@ -123,6 +126,9 @@ export class BlockchainService {
       await createdBlock.save();
 
       // TODO: Chamar serviço para atualizar hash da relação no banco relacional
+      this.logger.warn(
+        'TODO: Chamar serviço para atualizar hash da relação no banco relacional',
+      );
       // await this.supplierProductService.updateRelationHash(blockchainId, newBlock.hash);
 
       return { hash: newBlock.hash };
@@ -139,28 +145,10 @@ export class BlockchainService {
    */
   async getBlockchain(blockchainId: string): Promise<Block[]> {
     try {
-      return await this.blockModel
-        .find({ _id: blockchainId })
-        .sort({ index: 1 });
+      return await this.blockModel.find({ blockchainId }).sort({ index: 1 });
     } catch (error) {
       this.logger.error('Error getting blockchain', error.stack);
       throw new Error('Error getting blockchain');
-    }
-  }
-
-  /**
-   * Retrieves the provenance of a product based on its hash.
-   * @param productHash - The hash of the product.
-   * @returns An array of blocks containing the product's provenance data.
-   */
-  async getProductProvenance(productHash: string): Promise<Block[]> {
-    try {
-      return await this.blockModel
-        .find({ data: new RegExp(productHash, 'i') })
-        .sort({ index: 1 });
-    } catch (error) {
-      this.logger.error('Error getting product provenance', error.stack);
-      throw new Error('Error getting product provenance');
     }
   }
 
@@ -172,7 +160,7 @@ export class BlockchainService {
   async validateBlockchain(blockchainId: string): Promise<boolean> {
     try {
       const blocks = await this.blockModel
-        .find({ _id: blockchainId })
+        .find({ blockchainId })
         .sort({ index: 1 });
 
       for (let i = 1; i < blocks.length; i++) {
@@ -205,51 +193,51 @@ export class BlockchainService {
   }
 
   /**
-   * Validates all suppliers related to a specific product.
-   * @param productId - The ID of the product.
+   * Validates all suppliers related to a specific blockchain.
+   * @param blockchainId - The ID of the blockchain.
    * @returns A boolean indicating whether all related suppliers are valid.
    */
-  async validateSuppliersByProduct(productId: string): Promise<boolean> {
+  async validateSuppliersByBlockchain(blockchainId: string): Promise<boolean> {
     try {
       // TODO: Buscar fornecedores relacionados ao produto do banco relacional
-      console.log(
-        `TODO: Buscar fornecedores relacionados ao produto de id ${productId}`,
+      this.logger.warn(
+        'TODO: Função depende da busca dos fornecedores relacionados ao produto do banco relacional para funcionar',
       );
       // const suppliers = await this.supplierProductService.getSuppliersByProduct(productId);
-      const suppliers = []; // Placeholder for actual suppliers
 
-      for (const supplier of suppliers) {
-        const blocks = await this.blockModel
-          .find({ data: new RegExp(supplier.hash, 'i') })
-          .sort({ index: 1 });
+      const blocks = await this.blockModel
+        .find({ blockchainId })
+        .sort({ index: 1 });
 
-        for (let i = 1; i < blocks.length; i++) {
-          const currentBlock = blocks[i];
-          const previousBlock = blocks[i - 1];
+      for (let i = 1; i < blocks.length; i++) {
+        const currentBlock = blocks[i];
+        const previousBlock = blocks[i - 1];
 
-          if (
-            currentBlock.hash !==
-            this.calculateHash(
-              currentBlock.index,
-              currentBlock.timestamp,
-              currentBlock.data,
-              currentBlock.previousHash,
-              currentBlock.nonce,
-            )
-          ) {
-            return false;
-          }
+        if (
+          currentBlock.hash !==
+          this.calculateHash(
+            currentBlock.index,
+            currentBlock.timestamp,
+            currentBlock.data,
+            currentBlock.previousHash,
+            currentBlock.nonce,
+          )
+        ) {
+          return false;
+        }
 
-          if (currentBlock.previousHash !== previousBlock.hash) {
-            return false;
-          }
+        if (currentBlock.previousHash !== previousBlock.hash) {
+          return false;
         }
       }
 
       return true;
     } catch (error) {
-      this.logger.error('Error validating suppliers by product', error.stack);
-      throw new Error('Error validating suppliers by product');
+      this.logger.error(
+        'Error validating suppliers by blockchain',
+        error.stack,
+      );
+      throw new Error('Error validating suppliers by blockchain');
     }
   }
 }

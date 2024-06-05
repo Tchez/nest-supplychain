@@ -1,6 +1,6 @@
 export class CreateProductDto {
-  readonly title: string;
+  readonly id: string;
+  readonly name: string;
   readonly description: string;
   readonly category: string;
-  readonly supplierId: string;
 }
